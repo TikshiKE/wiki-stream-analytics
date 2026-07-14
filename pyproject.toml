@@ -11,6 +11,7 @@ members = ["services/producer", "services/consumer", "services/healthchecker"]
 dev = [
     "ruff>=0.8",
     "pytest>=8.3",
+    "fakeredis>=2.26",
 ]
 
 [tool.ruff]

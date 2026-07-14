@@ -3,7 +3,14 @@ name = "consumer"
 version = "0.1.0"
 description = "Consumes wiki events from Kafka and writes them to the PostgreSQL raw layer"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "confluent-kafka>=2.6",
+    "psycopg[binary]>=3.2",
+    "redis>=5.2",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "structlog>=24.4",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -11,3 +18,9 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/consumer"]
+
+[dependency-groups]
+dev = [
+    "fakeredis>=2.26",
+    "pytest>=8.3",
+]
