@@ -1,0 +1,36 @@
+[project]
+name = "wiki-stream-analytics"
+version = "0.1.0"
+description = "Real-time analytics pipeline for Wikipedia edits (portfolio project)"
+requires-python = ">=3.12"
+
+[tool.uv.workspace]
+members = ["services/producer", "services/consumer", "services/healthchecker"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.8",
+    "pytest>=8.3",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+]
+
+[tool.pytest.ini_options]
+testpaths = ["services"]
+markers = [
+    "integration: integration tests that require Docker (excluded by default)",
+]
+addopts = "-m 'not integration'"
