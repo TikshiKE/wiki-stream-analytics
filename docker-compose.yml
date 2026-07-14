@@ -61,6 +61,22 @@ services:
       timeout: 3s
       retries: 10
 
+  producer:
+    build:
+      context: .
+      dockerfile: services/producer/Dockerfile
+    container_name: wsa-producer
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_TOPIC_EVENTS: ${KAFKA_TOPIC_EVENTS:-wiki.recentchange}
+      KAFKA_TOPIC_DLQ: ${KAFKA_TOPIC_DLQ:-wiki.recentchange.dlq}
+      SSE_URL: ${SSE_URL:-https://stream.wikimedia.org/v2/stream/recentchange}
+      SSE_USER_AGENT: ${SSE_USER_AGENT:-wiki-stream-analytics/0.1 (https://github.com/TikshiKE/wiki-stream-analytics; evgeny.kren.engineer@gmail.com)}
+    depends_on:
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+
   kafka-ui:
     image: ghcr.io/kafbat/kafka-ui:latest
     container_name: wsa-kafka-ui
