@@ -43,6 +43,7 @@ Thumbs.db
 PLAN.md
 PROMPTS.md
 README.md
+sensitive.txt
 
 # Docker volumes (if mapped locally)
 .volumes/

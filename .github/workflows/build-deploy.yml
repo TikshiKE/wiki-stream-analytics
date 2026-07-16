@@ -1,0 +1,160 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: producer
+            dockerfile: services/producer/Dockerfile
+          - service: consumer
+            dockerfile: services/consumer/Dockerfile
+          - service: healthchecker
+            dockerfile: services/healthchecker/Dockerfile
+          - service: dashboard
+            dockerfile: dashboard/Dockerfile
+          - service: airflow
+            dockerfile: airflow/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lowercase owner for GHCR
+        id: image
+        run: echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ steps.image.outputs.owner }}/wiki-stream-analytics-${{ matrix.service }}
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  build-dbt-docs:
+    name: Build dbt docs image
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: wiki
+          POSTGRES_PASSWORD: wiki
+          POSTGRES_DB: wiki
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U wiki -d wiki"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: wiki
+      POSTGRES_PASSWORD: wiki
+      POSTGRES_DB: wiki
+      DBT_TARGET: dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv sync --all-packages --group dev
+
+      - name: Apply SQL migrations
+        run: uv run python sql/migrate.py
+
+      - name: Seed CI fixtures
+        run: uv run python scripts/seed_ci_fixtures.py
+
+      - name: Generate dbt docs
+        working-directory: dbt/wiki_analytics
+        run: |
+          uv run dbt deps --profiles-dir .
+          uv run dbt build --profiles-dir .
+          uv run dbt docs generate --profiles-dir .
+
+      - name: Lowercase owner for GHCR
+        id: image
+        run: echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ steps.image.outputs.owner }}/wiki-stream-analytics-dbt-docs
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push dbt docs
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: dbt-docs/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy:
+    name: Redeploy Railway services
+    needs: [build, build-dbt-docs]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli@4.5.0
+
+      - name: Redeploy GHCR-backed services
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${RAILWAY_TOKEN}" ]; then
+            echo "::warning::RAILWAY_TOKEN secret is not set — skipping Railway redeploy"
+            exit 0
+          fi
+          for service in producer consumer healthchecker dashboard airflow dbt-docs; do
+            echo "Redeploying ${service}..."
+            railway redeploy --service "${service}" --yes
+          done
+
