@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: uv sync --all-packages
+      - name: Ruff lint
+        run: uv run ruff check .
+      - name: Ruff format check
+        run: uv run ruff format --check .
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: uv sync --all-packages --group dev
+      - name: Run tests
+        run: uv run pytest -v
+
+  dbt-check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: wiki
+          POSTGRES_PASSWORD: wiki
+          POSTGRES_DB: wiki
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: wiki
+      POSTGRES_PASSWORD: wiki
+      POSTGRES_DB: wiki
+      DBT_TARGET: dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: uv sync --all-packages --group dev
+      - name: Apply SQL migrations
+        run: uv run python sql/migrate.py
+      - name: Seed CI fixtures
+        run: uv run python scripts/seed_ci_fixtures.py
+      - name: dbt deps
+        working-directory: dbt/wiki_analytics
+        run: uv run dbt deps --profiles-dir .
+      - name: dbt build
+        working-directory: dbt/wiki_analytics
+        run: uv run dbt build --profiles-dir .
