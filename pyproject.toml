@@ -12,6 +12,8 @@ dev = [
     "ruff>=0.8",
     "pytest>=8.3",
     "fakeredis>=2.26",
+    "dbt-core>=1.9",
+    "dbt-postgres>=1.9",
 ]
 
 [tool.ruff]

@@ -1,0 +1,30 @@
+version: 2
+
+models:
+  - name: stg_recentchange
+    description: >
+      Cleaned and enriched recentchange events. Adds bytes_delta, is_revert flag,
+      and a composite page_key for downstream marts.
+    columns:
+      - name: event_id
+        description: Unique event identifier.
+        tests: [not_null]
+      - name: event_ts
+        description: Event timestamp (UTC).
+        tests: [not_null]
+      - name: wiki
+        description: Wiki code.
+        tests: [not_null]
+      - name: change_type
+        description: edit or new.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["edit", "new"]
+      - name: bytes_delta
+        description: Change in page size (length_new - length_old).
+      - name: is_revert
+        description: True when the edit comment matches a revert pattern.
+      - name: page_key
+        description: Composite key wiki:title for page-level aggregations.

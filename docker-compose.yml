@@ -37,7 +37,7 @@ services:
     image: postgres:16
     container_name: wsa-postgres
     ports:
-      - "5432:5432"
+      - "5433:5432" # 5433 on host — avoids clash with local PostgreSQL on 5432
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-wiki}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wiki}

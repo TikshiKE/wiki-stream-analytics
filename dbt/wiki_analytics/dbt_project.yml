@@ -1,0 +1,34 @@
+name: wiki_analytics
+version: "1.0.0"
+config-version: 2
+profile: wiki_analytics
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+analysis-paths: ["analyses"]
+
+clean-targets:
+  - target
+  - dbt_packages
+
+models:
+  wiki_analytics:
+    staging:
+      +schema: staging
+      +materialized: view
+    marts:
+      +schema: marts
+      dim_wiki:
+        +materialized: table
+      fct_edits:
+        +materialized: incremental
+      agg_edits_hourly:
+        +materialized: incremental
+      mart_top_pages_daily:
+        +materialized: table
+      mart_editor_activity_daily:
+        +materialized: table
+
+vars:
+  revert_pattern: "(revert|rv\\b|undo|rollback|откат)"
