@@ -1,0 +1,26 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Raw recentchange events written by the Kafka consumer.
+    schema: raw
+    tables:
+      - name: recentchange
+        description: >
+          Partitioned table of Wikipedia edit/new events. One row per event;
+          populated in real time from the EventStreams pipeline.
+        loaded_at_field: inserted_at
+        freshness:
+          warn_after: { count: 10, period: minute }
+          error_after: { count: 60, period: minute }
+        columns:
+          - name: event_id
+            description: Unique event identifier (meta.id from EventStreams).
+          - name: event_ts
+            description: Event timestamp in UTC (meta.dt).
+          - name: wiki
+            description: Wiki code, e.g. enwiki, ruwiki.
+          - name: domain
+            description: Wiki domain, e.g. en.wikipedia.org.
+          - name: change_type
+            description: Event type; only edit and new are stored in raw.

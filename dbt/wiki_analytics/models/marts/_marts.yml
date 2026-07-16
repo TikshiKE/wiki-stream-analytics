@@ -1,0 +1,123 @@
+version: 2
+
+models:
+  - name: dim_wiki
+    description: Wiki dimension — one row per wiki code with language and project.
+    columns:
+      - name: wiki
+        description: Primary key; wiki code (enwiki, ruwiki, ...).
+        tests: [unique, not_null]
+      - name: domain
+        description: Full domain of the wiki project.
+        tests: [not_null]
+      - name: language_code
+        description: ISO-like language code extracted from domain; null for commons/wikidata.
+      - name: project
+        description: Wikimedia project type (wikipedia, wiktionary, commons, ...).
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  [
+                    "wikipedia",
+                    "wiktionary",
+                    "wikinews",
+                    "wikibooks",
+                    "wikiquote",
+                    "wikisource",
+                    "wikivoyage",
+                    "wikidata",
+                    "commons",
+                    "meta",
+                    "other",
+                  ]
+
+  - name: fct_edits
+    description: >
+      Fact table of Wikipedia edits. Grain is one row per edit/new event.
+      Incremental with 1-hour lookback on event_ts.
+    columns:
+      - name: event_id
+        description: Unique event identifier.
+        tests: [unique, not_null]
+      - name: event_ts
+        description: Event timestamp (UTC).
+        tests: [not_null]
+      - name: wiki
+        description: Wiki code; foreign key to dim_wiki.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_wiki')
+                field: wiki
+      - name: change_type
+        description: edit or new.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["edit", "new"]
+      - name: bytes_delta
+        description: Page size change in bytes.
+      - name: is_revert
+        description: Whether the edit comment indicates a revert.
+
+  - name: agg_edits_hourly
+    description: >
+      Hourly edit aggregates per wiki. Incremental with 2-hour lookback.
+    columns:
+      - name: hour_ts
+        description: Hour bucket (UTC).
+        tests: [not_null]
+      - name: wiki
+        description: Wiki code.
+        tests: [not_null]
+      - name: edit_count
+        description: Number of edits in the hour.
+        tests: [not_null]
+      - name: bot_share
+        description: Fraction of edits made by bots (0..1).
+        tests:
+          - range_between:
+              arguments:
+                min_value: 0
+                max_value: 1
+      - name: anonymous_share
+        description: Fraction of edits by anonymous (IP) users (0..1).
+        tests:
+          - range_between:
+              arguments:
+                min_value: 0
+                max_value: 1
+
+  - name: mart_top_pages_daily
+    description: Daily edit counts per page, for top-pages reporting.
+    columns:
+      - name: edit_date
+        description: Calendar date (UTC).
+        tests: [not_null]
+      - name: page_key
+        description: Composite wiki:title key.
+        tests: [not_null]
+      - name: edit_count
+        description: Number of edits on that day.
+        tests: [not_null]
+
+  - name: mart_editor_activity_daily
+    description: Daily edit counts by editor type (bot, anonymous, registered).
+    columns:
+      - name: edit_date
+        description: Calendar date (UTC).
+        tests: [not_null]
+      - name: editor_type
+        description: bot, anonymous, or registered.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["bot", "anonymous", "registered"]
+      - name: edit_count
+        description: Number of edits.
+        tests: [not_null]
