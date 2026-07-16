@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+build/
+dist/
+
+# uv / tooling caches
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# dbt
+dbt/**/target/
+dbt/**/dbt_packages/
+dbt/**/logs/
+dbt/**/.user.yml
+
+# Airflow
+airflow/logs/
+airflow/*.pid
+airflow/airflow.db
+airflow/webserver_config.py
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Local working notes (not for the public repo)
+PLAN.md
+PROMPTS.md
+sensitive.txt
+
+# Docker volumes (if mapped locally)
+.volumes/
