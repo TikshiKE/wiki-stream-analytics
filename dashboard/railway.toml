@@ -1,0 +1,9 @@
+# Railway service: Streamlit dashboard (read-only Postgres + Redis).
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "dashboard/Dockerfile"
+watchPatterns = ["dashboard/**"]
+
+[deploy]
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

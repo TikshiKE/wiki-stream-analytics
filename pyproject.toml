@@ -5,7 +5,7 @@ description = "Real-time analytics pipeline for Wikipedia edits (portfolio proje
 requires-python = ">=3.12"
 
 [tool.uv.workspace]
-members = ["services/producer", "services/consumer", "services/healthchecker"]
+members = ["services/producer", "services/consumer", "services/healthchecker", "dashboard"]
 
 [dependency-groups]
 dev = [
@@ -34,7 +34,7 @@ select = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["services", "airflow/tests"]
+testpaths = ["services", "airflow/tests", "dashboard/tests"]
 markers = [
     "integration: integration tests that require Docker (excluded by default)",
 ]

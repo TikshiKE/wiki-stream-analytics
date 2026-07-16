@@ -154,6 +154,31 @@ services:
     command: standalone
     restart: unless-stopped
 
+  dashboard:
+    build:
+      context: .
+      dockerfile: dashboard/Dockerfile
+    container_name: wsa-dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ${POSTGRES_DB:-wiki}
+      POSTGRES_RO_USER: ${POSTGRES_RO_USER:-wiki_ro}
+      POSTGRES_RO_PASSWORD: ${POSTGRES_RO_PASSWORD:-wiki_ro}
+      REDIS_URL: redis://redis:6379/0
+      GITHUB_REPO_URL: ${GITHUB_REPO_URL:-https://github.com/TikshiKE/wiki-stream-analytics}
+      LIVE_REFRESH_SECONDS: "10"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      consumer:
+        condition: service_started
+    restart: unless-stopped
+
 volumes:
   kafka_data:
   pg_data:

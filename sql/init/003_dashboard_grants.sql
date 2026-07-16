@@ -1,0 +1,12 @@
+-- Read-only access for Streamlit dashboard (marts populated by dbt).
+
+CREATE SCHEMA IF NOT EXISTS marts;
+CREATE SCHEMA IF NOT EXISTS staging;
+
+GRANT USAGE ON SCHEMA marts TO wiki_ro;
+GRANT USAGE ON SCHEMA staging TO wiki_ro;
+GRANT SELECT ON ALL TABLES IN SCHEMA marts TO wiki_ro;
+GRANT SELECT ON ALL TABLES IN SCHEMA staging TO wiki_ro;
+
+ALTER DEFAULT PRIVILEGES FOR ROLE wiki IN SCHEMA marts GRANT SELECT ON TABLES TO wiki_ro;
+ALTER DEFAULT PRIVILEGES FOR ROLE wiki IN SCHEMA staging GRANT SELECT ON TABLES TO wiki_ro;
