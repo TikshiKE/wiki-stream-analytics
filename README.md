@@ -106,11 +106,11 @@ Setup guide: [docs/railway-deploy.md](docs/railway-deploy.md)
 
 | Store | Policy |
 |-------|--------|
-| Raw Postgres | 14 days (daily partition drop) |
+| Raw Postgres | 7 days (daily partition drop) |
 | Marts | Kept |
 | Redis dedup | 1 hour TTL |
 | Redis live counters | 2 hour TTL |
-| Kafka logs | 24 hours |
+| Kafka logs | 12 hours |
 
 ## License
 

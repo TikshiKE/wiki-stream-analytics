@@ -37,7 +37,7 @@ def _create_partitions() -> None:
 
 
 def _drop_partitions() -> None:
-    retention = int(os.environ.get("RETENTION_DAYS", "14"))
+    retention = int(os.environ.get("RETENTION_DAYS", "7"))
     drop_old_partitions(retention_days=retention)
 
 

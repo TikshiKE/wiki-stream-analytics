@@ -79,7 +79,7 @@ def _live_block(redis_url: str) -> None:
         st.metric("Edits in the last minute", f"{last_minute:,}")
         st.caption("Refreshes every ~10 seconds from Redis live counters")
     with col_chart:
-        st.plotly_chart(sparkline_figure(sparkline), use_container_width=True)
+        st.plotly_chart(sparkline_figure(sparkline), width="stretch")
 
 
 def main() -> None:
@@ -117,7 +117,7 @@ def main() -> None:
     elif not hourly:
         st.info("No hourly aggregates yet — check back after the next dbt run.")
     else:
-        st.plotly_chart(hourly_activity_figure(hourly), use_container_width=True)
+        st.plotly_chart(hourly_activity_figure(hourly), width="stretch")
 
     st.subheader("Editor mix by day")
     editors = _load_editor_activity(settings.postgres_dsn)
@@ -126,7 +126,7 @@ def main() -> None:
     elif not editors:
         st.info("No daily editor breakdown yet.")
     else:
-        st.plotly_chart(editor_share_figure(editors), use_container_width=True)
+        st.plotly_chart(editor_share_figure(editors), width="stretch")
 
     st.subheader("Top pages today")
     pages = _load_top_pages(settings.postgres_dsn)
@@ -145,7 +145,7 @@ def main() -> None:
                 "url": st.column_config.LinkColumn("Link", display_text="Open ↗"),
             },
             hide_index=True,
-            use_container_width=True,
+            width="stretch",
         )
 
 

@@ -37,7 +37,7 @@ Only `edit` and `new` events land in Postgres (~50% volume reduction). Full JSON
 
 ### Partitioned raw table
 
-`raw.recentchange` is range-partitioned by `event_ts` (daily). Airflow `maintenance_daily` creates partitions 3 days ahead and drops partitions older than `RETENTION_DAYS` (default 14).
+`raw.recentchange` is range-partitioned by `event_ts` (daily). Airflow `maintenance_daily` creates partitions 3 days ahead and drops partitions older than `RETENTION_DAYS` (default 7).
 
 **Trade-off:** partition management overhead; **benefit:** cheap retention and predictable query plans.
 
@@ -114,7 +114,7 @@ Kafka on Railway uses the public `apache/kafka:4.0.0` image (not built in GHCR) 
 
 | Component | Storage | Notes |
 |-----------|---------|-------|
-| Raw + marts data | Railway Postgres | 14-day raw retention; marts kept |
+| Raw + marts data | Railway Postgres | 7-day raw retention; marts kept |
 | Airflow metadata | Postgres DB `airflow_meta` | Same Postgres instance |
 | Dedup + live counters | Railway Redis | Ephemeral by design (TTL) |
 | Kafka log segments | Railway volume on Kafka service | **Ephemeral risk** — see trade-offs |
@@ -152,7 +152,7 @@ Railway should healthcheck **dashboard** and **healthchecker** publicly. Other s
 | **Single Kafka broker** | No HA; broker restart = brief ingest pause | Consumer catches up from live SSE; at-least-once + idempotent writes |
 | **Kafka disk on Railway** | Volume may be lost on major redeploy | Live SSE stream refills raw data after redeploy |
 | **Airflow on PaaS** | ~1–1.5 GB RAM, heavy JVM/Python stack | `standalone` + LocalExecutor, few DAGs, hourly/low-frequency jobs |
-| **Postgres growth** | ~3–8M rows/day before retention | 14-day partition drop; `DbSizeCheck` warns via healthchecker |
+| **Postgres growth** | ~3–8M rows/day before retention | 7-day partition drop; `DbSizeCheck` warns via healthchecker |
 | **Redis restart** | Dedup cache cleared | Postgres PK + ON CONFLICT is the safety net |
 | **Public dashboard** | Read-only `wiki_ro` user limits blast radius | No write credentials in dashboard service |
 
@@ -160,11 +160,11 @@ Railway should healthcheck **dashboard** and **healthchecker** publicly. Other s
 
 | Service | RAM | vCPU |
 |---------|-----|------|
-| Kafka (KRaft) | 1024 MB | 1 |
-| Airflow | 1536 MB | 1 |
-| consumer | 512 MB | 0.5 |
+| Kafka (KRaft) | 768 MB | 1 |
+| Airflow | 1280 MB | 1 |
+| consumer | 384 MB | 0.5 |
 | producer | 256 MB | 0.5 |
-| dashboard | 512 MB | 0.5 |
+| dashboard | 384 MB | 0.5 |
 | healthchecker | 256 MB | 0.5 |
 | dbt-docs | 128 MB | 0.25 |
 | Postgres | managed | managed |

@@ -41,7 +41,7 @@ def create_raw_partitions(days_ahead: int = 3) -> int:
 
 def drop_old_partitions(retention_days: int | None = None) -> int:
     today = datetime.now(UTC).date()
-    retention = retention_days or int(os.environ.get("RETENTION_DAYS", "14"))
+    retention = retention_days or int(os.environ.get("RETENTION_DAYS", "7"))
     dropped = 0
     with _connect() as conn:
         with conn.cursor() as cur:

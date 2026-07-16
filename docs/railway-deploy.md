@@ -90,13 +90,13 @@ KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
 KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
 KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
 KAFKA_AUTO_CREATE_TOPICS_ENABLE=false
-KAFKA_LOG_RETENTION_HOURS=24
+KAFKA_LOG_RETENTION_HOURS=12
 ```
 
 ### Step 2.3 — Kafka volume
 
 1. Kafka service → **Settings** → **Volumes** → Add volume mount: `/var/lib/kafka/data`
-2. Set RAM limit: **1024 MB**
+2. Set RAM limit: **768 MB**
 
 **Stop here and confirm:** Kafka service is healthy (check deploy logs).
 
@@ -115,7 +115,7 @@ KAFKA_TOPIC_DLQ=wiki.recentchange.dlq
 KAFKA_CONSUMER_GROUP=pg-writer
 SSE_URL=https://stream.wikimedia.org/v2/stream/recentchange
 SSE_USER_AGENT=wiki-stream-analytics/0.1 (https://github.com/TikshiKE/wiki-stream-analytics; your@email.com)
-RETENTION_DAYS=14
+RETENTION_DAYS=7
 DBT_TARGET=prod
 TELEGRAM_BOT_TOKEN=
 TELEGRAM_CHAT_ID=
@@ -134,10 +134,10 @@ For each service below: **+ New** → **Empty Service** → **Deploy from Docker
 | Service name | Image | Public URL | RAM |
 |--------------|-------|------------|-----|
 | `producer` | `ghcr.io/tikshike/wiki-stream-analytics-producer:latest` | No | 256 MB |
-| `consumer` | `ghcr.io/tikshike/wiki-stream-analytics-consumer:latest` | No | 512 MB |
-| `dashboard` | `ghcr.io/tikshike/wiki-stream-analytics-dashboard:latest` | **Yes** | 512 MB |
+| `consumer` | `ghcr.io/tikshike/wiki-stream-analytics-consumer:latest` | No | 384 MB |
+| `dashboard` | `ghcr.io/tikshike/wiki-stream-analytics-dashboard:latest` | **Yes** | 384 MB |
 | `healthchecker` | `ghcr.io/tikshike/wiki-stream-analytics-healthchecker:latest` | Optional | 256 MB |
-| `airflow` | `ghcr.io/tikshike/wiki-stream-analytics-airflow:latest` | Optional (8080) | 1536 MB |
+| `airflow` | `ghcr.io/tikshike/wiki-stream-analytics-airflow:latest` | Optional (8080) | 1280 MB |
 | `dbt-docs` | `ghcr.io/tikshike/wiki-stream-analytics-dbt-docs:latest` | **Yes** | 128 MB |
 
 > Use lowercase `tikshike` in GHCR paths. Pin to `:latest` for auto-pull on redeploy.
