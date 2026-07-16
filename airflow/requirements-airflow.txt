@@ -1,3 +1,1 @@
-dbt-core>=1.9
-dbt-postgres>=1.9
 psycopg2-binary>=2.9

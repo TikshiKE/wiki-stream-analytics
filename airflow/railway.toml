@@ -1,0 +1,9 @@
+# Railway service: maintenance DAGs only (dbt runs in dbt-runner service).
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "airflow/Dockerfile"
+watchPatterns = ["airflow/**", "sql/**"]
+
+[deploy]
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

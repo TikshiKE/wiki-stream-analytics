@@ -1,6 +1,16 @@
-# Running dbt locally
+# Running dbt
 
-Prerequisites: Docker stack running (`docker compose up -d`) so `raw.recentchange` has data.
+In normal operation **dbt runs automatically** via the `dbt-runner` service (`docker compose up -d`)
+or the dedicated Railway service — no manual steps required.
+
+## Automatic runs (default)
+
+The `dbt-runner` container loops `dbt build` every `DBT_INTERVAL_SECONDS` (default 3600).
+Set `DBT_TARGET=prod` on Railway; use `dev` locally.
+
+## Manual run (debug only)
+
+Prerequisites: Docker stack running so `raw.recentchange` has data.
 
 ```powershell
 cd dbt/wiki_analytics
@@ -21,5 +31,6 @@ Environment variables (defaults match `.env.example`):
 | `POSTGRES_PASSWORD` | wiki |
 | `POSTGRES_DB` | wiki |
 | `DBT_TARGET` | dev |
+| `DBT_INTERVAL_SECONDS` | 3600 |
 
 Schemas created: `staging` (views), `marts` (tables / incremental).

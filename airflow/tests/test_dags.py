@@ -38,5 +38,4 @@ def test_dagbag_has_no_import_errors(airflow_env):
     dag_folder = str(AIRFLOW_ROOT / "dags")
     bag = DagBag(dag_folder=dag_folder, include_examples=False)
     assert bag.import_errors == {}, f"DAG import errors: {bag.import_errors}"
-    assert "dbt_hourly" in bag.dags
     assert "maintenance_daily" in bag.dags
