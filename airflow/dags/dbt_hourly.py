@@ -5,10 +5,10 @@ from __future__ import annotations
 import os
 from datetime import UTC, datetime, timedelta
 
-from airflow import DAG
 from airflow.operators.bash import BashOperator
-
 from alerts import send_telegram_alert
+
+from airflow import DAG
 
 DBT_DIR = "/opt/airflow/dbt/wiki_analytics"
 
