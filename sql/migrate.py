@@ -7,19 +7,36 @@ import sys
 from pathlib import Path
 
 import psycopg
+from psycopg import sql
 
 
 def migrations_dir() -> Path:
     return Path(__file__).resolve().parent / "init"
 
 
-def connect_dsn() -> str:
-    host = os.environ.get("POSTGRES_HOST", "localhost")
-    port = os.environ.get("POSTGRES_PORT", "5432")
-    user = os.environ.get("POSTGRES_USER", "wiki")
-    password = os.environ.get("POSTGRES_PASSWORD", "wiki")
-    db = os.environ.get("POSTGRES_DB", "wiki")
+def _env(name: str, default: str) -> str:
+    return os.environ.get(name, default)
+
+
+def connect_dsn(dbname: str | None = None) -> str:
+    host = _env("POSTGRES_HOST", "localhost")
+    port = _env("POSTGRES_PORT", "5432")
+    user = _env("POSTGRES_USER", "wiki")
+    password = _env("POSTGRES_PASSWORD", "wiki")
+    db = dbname or _env("POSTGRES_DB", "wiki")
     return f"host={host} port={port} user={user} password={password} dbname={db}"
+
+
+def ensure_airflow_database() -> None:
+    """Create airflow_meta DB if missing (idempotent)."""
+    meta_db = _env("AIRFLOW_META_DB", "airflow_meta")
+    with psycopg.connect(connect_dsn(dbname="postgres"), autocommit=True) as conn:
+        exists = conn.execute(
+            "SELECT 1 FROM pg_database WHERE datname = %s", (meta_db,)
+        ).fetchone()
+        if not exists:
+            conn.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(meta_db)))
+            print(f"Created database {meta_db}")
 
 
 def pending_migrations(conn: psycopg.Connection) -> list[Path]:
@@ -40,6 +57,8 @@ def apply_file(conn: psycopg.Connection, path: Path) -> None:
 
 
 def main() -> int:
+    ensure_airflow_database()
+
     files = sorted(migrations_dir().glob("*.sql"))
     if not files:
         print("No migrations found", file=sys.stderr)
@@ -59,6 +78,8 @@ def main() -> int:
 
         for path in pending_migrations(conn):
             print(f"Applying {path.name}...")
+            if path.name == "002_airflow_meta.sql":
+                ensure_airflow_database()
             apply_file(conn, path)
             conn.commit()
             print(f"Applied {path.name}")

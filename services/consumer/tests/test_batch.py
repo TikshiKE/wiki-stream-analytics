@@ -1,7 +1,5 @@
 """Tests for micro-batch buffer."""
 
-import time
-
 from conftest import SAMPLE_MINIMAL
 from consumer.batch import BatchBuffer, BufferedMessage
 from consumer.mapper import parse_payload, row_from_payload
@@ -21,8 +19,9 @@ def test_flush_by_size() -> None:
     assert len(buf.drain()) == 2
 
 
-def test_flush_by_timeout() -> None:
+def test_flush_by_timeout(monkeypatch) -> None:
     buf = BatchBuffer(max_size=100, max_wait_s=0.05)
+    buf._opened_at = 1000.0
+    monkeypatch.setattr("consumer.batch.time.monotonic", lambda: 1000.06)
     buf.add(_item())
-    time.sleep(0.06)
     assert buf.should_flush()
