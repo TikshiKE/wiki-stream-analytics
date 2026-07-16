@@ -1,9 +1,0 @@
-# Railway service: set repo root as root directory, point Dockerfile to this path.
-[build]
-builder = "DOCKERFILE"
-dockerfilePath = "services/dbt-runner/Dockerfile"
-watchPatterns = ["services/dbt-runner/**", "dbt/wiki_analytics/**"]
-
-[deploy]
-restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 10

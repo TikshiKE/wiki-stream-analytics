@@ -1,11 +1,11 @@
 # Running dbt
 
-In normal operation **dbt runs automatically** via the `dbt-runner` service (`docker compose up -d`)
-or the dedicated Railway service — no manual steps required.
+In normal operation **dbt runs automatically** via the Airflow `dbt_hourly` DAG
+(`docker compose up -d` locally, Airflow service on Railway) — no manual steps required.
 
 ## Automatic runs (default)
 
-The `dbt-runner` container loops `dbt build` every `DBT_INTERVAL_SECONDS` (default 3600).
+Airflow triggers `dbt build` every hour (`@hourly`, `catchup=False`).
 Set `DBT_TARGET=prod` on Railway; use `dev` locally.
 
 ## Manual run (debug only)
@@ -31,6 +31,5 @@ Environment variables (defaults match `.env.example`):
 | `POSTGRES_PASSWORD` | wiki |
 | `POSTGRES_DB` | wiki |
 | `DBT_TARGET` | dev |
-| `DBT_INTERVAL_SECONDS` | 3600 |
 
 Schemas created: `staging` (views), `marts` (tables / incremental).

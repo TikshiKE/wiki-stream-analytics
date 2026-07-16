@@ -1,8 +1,8 @@
-# Railway service: maintenance DAGs only (dbt runs in dbt-runner service).
+# Railway service: Airflow standalone (dbt_hourly + maintenance_daily DAGs).
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "airflow/Dockerfile"
-watchPatterns = ["airflow/**", "sql/**"]
+watchPatterns = ["airflow/**", "dbt/wiki_analytics/**", "sql/**"]
 
 [deploy]
 restartPolicyType = "ON_FAILURE"
