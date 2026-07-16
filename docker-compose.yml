@@ -179,6 +179,41 @@ services:
         condition: service_started
     restart: unless-stopped
 
+  healthchecker:
+    build:
+      context: .
+      dockerfile: services/healthchecker/Dockerfile
+    container_name: wsa-healthchecker
+    ports:
+      - "8090:8090"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_TOPIC_EVENTS: ${KAFKA_TOPIC_EVENTS:-wiki.recentchange}
+      KAFKA_CONSUMER_GROUP: ${KAFKA_CONSUMER_GROUP:-pg-writer}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER:-wiki}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wiki}
+      POSTGRES_DB: ${POSTGRES_DB:-wiki}
+      REDIS_URL: redis://redis:6379/0
+      DASHBOARD_URL: http://dashboard:8501
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      HEALTH_PORT: "8090"
+      DB_SIZE_WARN_BYTES: ${DB_SIZE_WARN_BYTES:-10737418240}
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      dashboard:
+        condition: service_started
+      consumer:
+        condition: service_started
+    restart: unless-stopped
+
 volumes:
   kafka_data:
   pg_data:
