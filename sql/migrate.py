@@ -31,9 +31,7 @@ def ensure_airflow_database() -> None:
     """Create airflow_meta DB if missing (idempotent)."""
     meta_db = _env("AIRFLOW_META_DB", "airflow_meta")
     with psycopg.connect(connect_dsn(dbname="postgres"), autocommit=True) as conn:
-        exists = conn.execute(
-            "SELECT 1 FROM pg_database WHERE datname = %s", (meta_db,)
-        ).fetchone()
+        exists = conn.execute("SELECT 1 FROM pg_database WHERE datname = %s", (meta_db,)).fetchone()
         if not exists:
             conn.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(meta_db)))
             print(f"Created database {meta_db}")
