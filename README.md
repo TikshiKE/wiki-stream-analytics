@@ -13,6 +13,8 @@ Real-time analytics pipeline for Wikipedia edits. Wikimedia EventStreams feed fl
 | Airflow | https://airflow-production-6dbf.up.railway.app |
 | Health | https://healthchecker-production-3c7b.up.railway.app/health |
 
+The Railway deployment may be **stopped between demos** to limit hosting cost — links can be offline for a while. The full pipeline runs locally with `docker compose up -d`. Before a walkthrough, services are started in advance; Postgres keeps historical marts across restarts.
+
 ## Architecture
 
 ```mermaid
